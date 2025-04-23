@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>יומן ריפוי מאוחד</title>
+  <style>
+    body { font-family: sans-serif; direction: rtl; text-align: right; padding: 1em; background: #ffe4f0; color: #2dd4bf; max-width: 760px; margin: auto; }
+    input, textarea { width: 100%; margin-bottom: 10px; padding: 0.6em; border-radius: 0.6em; border: 1px solid #ccc; }
+    label { font-weight: bold; display: block; margin-top: 10px; color: #0d9488; }
+    button { padding: 0.6em 1.2em; background-color: #5eead4; border: none; border-radius: 1em; font-weight: bold; color: #065f46; cursor: pointer; }
+    button:hover { background-color: #2dd4bf; }
+    h1, h2 { text-align: center; color: #0f766e; }
+    .card { background: white; padding: 1em; border-radius: 1em; margin: 1em 0; box-shadow: 0 0 5px rgba(0,0,0,0.1); color: #334155; }
+    .saved { color: green; font-weight: bold; margin-top: 1em; text-align: center; }
+    .meal-slider { display: flex; overflow-x: auto; gap: 1em; padding: 1em 0; }
+    .meal-card { min-width: 220px; background: #f1f5f9; border-radius: 1em; padding: 1em; flex-shrink: 0; box-shadow: 0 0 5px rgba(0,0,0,0.05); }
+    .meal-card h3 { margin-top: 0; color: #0f766e; }
+    .daily-boost { font-size: 1.2em; font-weight: bold; background: #fce7f3; border: 1px dashed #ec4899; border-radius: 1em; padding: 0.8em; margin: 1em 0; text-align: center; color: #c026d3; }
+    canvas { width: 100% !important; max-width: 100%; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>יומן ריפוי יומי 🌷</h1>
+  <div class="daily-boost">✨ את עושה דרך מדהימה – המשיכי לצעוד באהבה ✨</div>
+
+  <form id="journalForm">
+    <label>📅 תאריך</label><input type="date" id="date" />
+    <label>🧘 מדיטציה (כן/לא)</label><input id="meditation" />
+    <label>🏃 אימון גופני (מה עשיתי)</label><input id="workout" />
+    <label>⏱️ כמה זמן התאמנתי (בדקות)</label><input id="workoutDuration" />
+    <label>☕ כמות קפה (כוסות)</label><input id="coffeeCups" />
+    <label>🍳 ארוחת בוקר</label><input id="breakfast" />
+    <label>🍛 ארוחת צהריים</label><input id="lunch" />
+    <label>🥣 ארוחת ערב</label><input id="dinner" />
+    <label>🍞 פחמימה יומית (איזו?)</label><input id="carbOfTheDay" />
+    <label>💬 רגשות שבלטו היום</label><textarea id="emotions"></textarea>
+    <label>🧍‍♀️ תחושות גופניות</label><textarea id="bodyFeelings"></textarea>
+    <label>🚨 תופעות עיכול (אם היו)</label><textarea id="digestionIssues"></textarea>
+    <label>⚡ רמת אנרגיה (1-10)</label><input id="energyLevel" />
+    <label>💤 שעות שינה בלילה הקודם</label><input id="sleepHours" />
+    <label>🙏 הכרת תודה</label><textarea id="gratitude"></textarea>
+    <label>🧿 מנטרה יומית לחיזוק</label><textarea id="dailyMantra"></textarea>
+    <label>🎯 מטרות ליום הבא</label><textarea id="goals"></textarea>
+    <label>⚖️ שקילה שבועית (רק בשלישי)</label><input id="weeklyWeight" />
+    <button type="button" onclick="saveJournal()">שמור יומן</button>
+    <div class="saved" id="savedMsg" style="display:none;">נשמר בהצלחה ✅</div>
+  </form>
+
+  <div class="card">
+    <h2>🍽️ השראה לארוחה</h2>
+    <div class="meal-slider">
+      <div class="meal-card"><h3>🍳 בוקר</h3><ul><li>ביצה קשה עם ירק</li><li>יוגורט (ללא לקטוז) עם אוכמניות</li><li>גרנולה עדינה</li></ul></div>
+      <div class="meal-card"><h3>🍛 צהריים</h3><ul><li>עוף בתנור עם ירקות</li><li>סטייק עם סלט</li><li>דג בתנור עם ירק</li></ul></div>
+      <div class="meal-card"><h3>🥣 ערב</h3><ul><li>שקשוקה</li><li>גבינה וירק</li><li>טוסט + ירק</li></ul></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 גרף התקדמות</h2>
+    <canvas id="progressChart"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function saveJournal() {
+      const fields = [
+        "date", "meditation", "workout", "workoutDuration", "coffeeCups", "breakfast", "lunch", "dinner",
+        "carbOfTheDay", "emotions", "bodyFeelings", "digestionIssues", "energyLevel",
+        "sleepHours", "gratitude", "dailyMantra", "goals", "weeklyWeight"
+      ];
+      const entry = {};
+      for (const field of fields) {
+        entry[field] = document.getElementById(field).value;
+      }
+      const saved = JSON.parse(localStorage.getItem("healingJournalSimple") || "[]");
+      saved.push(entry);
+      localStorage.setItem("healingJournalSimple", JSON.stringify(saved));
+      document.getElementById("savedMsg").style.display = "block";
+      setTimeout(() => document.getElementById("savedMsg").style.display = "none", 3000);
+      window.location.reload(); // Refresh to update chart
+    }
+
+    const data = JSON.parse(localStorage.getItem("healingJournalSimple") || "[]");
+    const labels = data.map(d => d.date);
+    const scores = data.map(d => {
+      let score = 0;
+      if (d.meditation?.toLowerCase() === 'כן') score += 25;
+      if (d.workout?.length > 0) score += 25;
+      if (d.breakfast || d.lunch || d.dinner) score += 25;
+      if (d.gratitude) score += 25;
+      return score;
+    });
+    const workouts = data.map(d => parseInt(d.workoutDuration || "0"));
+    const weights = data.map(d => (new Date(d.date).getDay() === 2 ? parseFloat(d.weeklyWeight || 0) : null));
+
+    new Chart(document.getElementById("progressChart"), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: "⏱️ דקות אימון", data: workouts, borderColor: "#38bdf8", backgroundColor: "#bae6fd", tension: 0.3 },
+          { label: "🌱 אחוז התמדה", data: scores, borderColor: "#4ade80", backgroundColor: "#bbf7d0", tension: 0.3 },
+          { label: "⚖️ משקל (שלישי)", data: weights, borderColor: "#f472b6", backgroundColor: "#fbcfe8", tension: 0.3, spanGaps: true }
+        ]
+      },
+      options: {
+        scales: { y: { beginAtZero: true } },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const score = ctx.raw;
+                if (ctx.dataset.label.includes("התמדה")) {
+                  return score >= 75 ? "🌟 יום מצוין - " + score + "%" :
+                         score >= 50 ? "😊 יום טוב - " + score + "%" :
+                                       "☁️ יום מאתגר - " + score + "%";
+                }
+                return ctx.dataset.label + ": " + score;
+              }
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
