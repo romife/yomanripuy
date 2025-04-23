@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>יומן ריפוי</title>
+  <style>
+    body { font-family: sans-serif; direction: rtl; text-align: right; padding: 1em; max-width: 600px; margin: auto; }
+    input, textarea { width: 100%; margin-bottom: 10px; padding: 0.5em; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    button { padding: 0.5em 1em; font-weight: bold; }
+    .saved { color: green; font-weight: bold; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>יומן ריפוי יומי</h1>
+  <form id="journalForm"></form>
+  <button onclick="saveJournal()">שמור יומן</button>
+  <div class="saved" id="savedMsg" style="display:none;">נשמר בהצלחה ✅</div>
+
+  <script>
+    const fields = {
+      date: "תאריך",
+      wakeUpTime: "שעת קימה",
+      meditation: "מדיטציה (כן/לא)",
+      workout: "אימון גופני (מה עשיתי)",
+      breakfast: "ארוחת בוקר",
+      lunch: "ארוחת צהריים",
+      dinner: "ארוחת ערב",
+      carbOfTheDay: "פחמימה יומית (איזו?)",
+      emotions: "רגשות שבלטו היום",
+      bodyFeelings: "תחושות גופניות",
+      digestionIssues: "תופעות עיכול (אם היו)",
+      energyLevel: "רמת אנרגיה (1-10)",
+      sleepHours: "שעות שינה בלילה הקודם",
+      gratitude: "הכרת תודה",
+      dailyMantra: "מנטרה יומית לחיזוק",
+      goals: "מטרות ליום הבא",
+      weeklyWeight: "שקילה שבועית (רק בשלישי)"
+    };
+
+    const today = new Date().toISOString().split('T')[0];
+    const day = new Date().getDay();
+    const mantras = [
+      "הגוף שלי מרפא את עצמו בכל רגע.",
+      "אני בוחרת להיות שלווה ובריאה.",
+      "הבחירות שלי היום בונות את הבריאות שלי מחר.",
+      "אני מחוברת לכוח הפנימי שלי לריפוי.",
+      "אני מקשיבה לגוף שלי באהבה ובכבוד."
+    ];
+    const randomMantra = mantras[Math.floor(Math.random() * mantras.length)];
+
+    const form = document.getElementById("journalForm");
+    for (const [key, label] of Object.entries(fields)) {
+      const value = key === "date" ? today :
+                    key === "dailyMantra" ? randomMantra :
+                    key === "weeklyWeight" && day !== 2 ? "—" : "";
+
+      form.innerHTML += `
+        <label for="${key}">${label}</label>
+        ${["gratitude","goals","emotions","bodyFeelings","digestionIssues","dailyMantra"].includes(key) ?
+          `<textarea id="${key}">${value}</textarea>` :
+          `<input id="${key}" value="${value}" />`}
+      `;
+    }
+
+    function saveJournal() {
+      const entry = {};
+      for (const key of Object.keys(fields)) {
+        entry[key] = document.getElementById(key).value;
+      }
+      const saved = JSON.parse(localStorage.getItem("healingJournalEntries") || "[]");
+      saved.push(entry);
+      localStorage.setItem("healingJournalEntries", JSON.stringify(saved));
+      document.getElementById("savedMsg").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("savedMsg").style.display = "none";
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
